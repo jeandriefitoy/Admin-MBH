@@ -13,7 +13,6 @@ const DashboardService = {
         }
     },
 
-    // Jika tidak ada endpoint khusus dashboard, kita bisa fetch dari berbagai endpoint
     getAllStats: async () => {
         try {
             const [
@@ -29,7 +28,7 @@ const DashboardService = {
                 api.makeRequest('/kategori', { method: 'GET' }),
                 api.makeRequest('/lokasi', { method: 'GET' }),
                 api.makeRequest('/klaim', { method: 'GET' }),
-                api.makeRequest('/pencocokan', { method: 'GET' })
+                api.makeRequest('/cocok', { method: 'GET' })
             ]);
 
             // Process results, handling both fulfilled and rejected promises
@@ -62,12 +61,10 @@ const DashboardService = {
         }
     },
 
-    // Method untuk mendapatkan statistik spesifik
     getSpecificStats: async () => {
         try {
             const stats = await this.getAllStats();
             
-            // Process laporan data to get more detailed statistics
             const laporanStats = this.processLaporanStats(stats.laporan);
             const userStats = this.processUserStats(stats.users);
             
