@@ -140,22 +140,6 @@ export default function LoginPage({ onLogin }) {
                         )}
                     </button>
                 </form>
-
-                {/* <div className="mt-6 space-y-2">
-                    <div className="p-4 bg-gray-50 rounded-lg">
-                        <p className="text-xs text-gray-600 text-center">
-                            <strong>Test Credentials:</strong><br/>
-                            Email: admin@uad.ac.id<br/>
-                            Password: password123
-                        </p>
-                    </div>
-                    
-                    <div className="p-3 bg-blue-50 rounded-lg">
-                        <p className="text-xs text-blue-600 text-center">
-                            <strong>API:</strong> /api/login
-                        </p>
-                    </div>
-                </div> */}
             </div>
         </div>
     );
