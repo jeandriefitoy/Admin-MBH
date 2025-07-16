@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Form, Input, Select, Button, Upload, message } from 'antd';
 import { LoadingOutlined, PlusOutlined } from '@ant-design/icons';
-import authService from '../../../service/api';
+import authService from '../../../service/authService';
 
 const { Option } = Select;
 

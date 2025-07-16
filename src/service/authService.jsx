@@ -107,20 +107,14 @@ class ApiService {
     });
   }
 
-  // Pastikan fungsi deleteUser ada dan benar
   async deleteUser(userId) {
-  console.log('API deleteUser called with ID:', userId); // Debug log
-  
-  if (!userId) {
-    throw new Error('User ID is required');
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+    return await this.makeRequest(`/users/${userId}`, {
+      method: 'DELETE',
+    });
   }
-
-  console.log('Making DELETE request to:', `/users/${userId}`); // Debug log
-  
-  return await this.makeRequest(`/users/${userId}`, {
-    method: 'DELETE',
-  });
-}
 
 
 

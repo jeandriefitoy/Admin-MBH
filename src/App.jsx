@@ -10,7 +10,7 @@ import PencocokanPage from './pages/pencocokan/page'
 import KlaimSatpamPage from './pages/klaimSatpam/page'
 import LoginPage from './auth/signIn/page'
 import KategoriPage from './pages/kategori/page'
-import authService from './service/api'
+import authService from './service/authService'
 
 function App() {
   const [activeSection, setActiveSection] = useState('dashboard')

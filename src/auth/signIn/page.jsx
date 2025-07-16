@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
-import authService from '../../service/api';
+import authService from '../../service/authService';
 
 export default function LoginPage({ onLogin }) {
     const [formData, setFormData] = useState({

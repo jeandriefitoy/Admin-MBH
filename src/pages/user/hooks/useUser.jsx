@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { message } from 'antd';
-import authService from '../../../service/api';
+import authService from '../../../service/authService';
 
 export const useUsers = () => {
   const [users, setUsers] = useState([]);

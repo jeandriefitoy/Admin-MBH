@@ -1,5 +1,5 @@
 import { LayoutDashboard, NotepadText, UserRound, FolderOpen, MapPin, Settings, LogOut } from 'lucide-react';
-import authService from '../service/api'; 
+import authService from '../service/authService'; 
 
 export default function SideBar({ activeSection, onSectionChange, onLogout }) {
     const menuItems = [
