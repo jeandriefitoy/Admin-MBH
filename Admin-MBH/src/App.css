@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+body {
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+.content {
+  overflow-y: auto;
+  height: calc(100vh - 4rem);
+  
+}
