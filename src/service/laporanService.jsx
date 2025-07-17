@@ -4,15 +4,10 @@ const LaporanService = {
     getAllLaporan: async (params = {}) => {
         try {
             const queryParams = new URLSearchParams(params).toString();
-            const endpoint = queryParams ? `/laporan?${queryParams}` : '/laporan';
-            
-            console.log('Calling endpoint:', endpoint);
-            
+            const endpoint = queryParams ? `/laporan?${queryParams}` : '/laporan';            
             const response = await api.makeRequest(endpoint, {
                 method: 'GET',
             });
-            
-            console.log('LaporanService response:', response);
             return response;
         } catch (error) {
             console.error('Error fetching laporan:', error);
@@ -34,15 +29,12 @@ const LaporanService = {
 
     createLaporan: async (data) => {
         try {
-            // Jika data berupa FormData (untuk upload file)
             if (data instanceof FormData) {
                 return await api.makeRequest('/laporan', {
                     method: 'POST',
                     body: data,
                 });
             }
-            
-            // Jika data berupa JSON
             return await api.makeRequest('/laporan', {
                 method: 'POST',
                 body: JSON.stringify(data),
@@ -55,15 +47,12 @@ const LaporanService = {
 
     updateLaporan: async (id, data) => {
         try {
-            // Jika data berupa FormData (untuk upload file)
             if (data instanceof FormData) {
                 return await api.makeRequest(`/laporan/${id}`, {
                     method: 'PUT',
                     body: data,
                 });
             }
-            
-            // Jika data berupa JSON
             return await api.makeRequest(`/laporan/${id}`, {
                 method: 'PUT',
                 body: JSON.stringify(data),
@@ -86,18 +75,14 @@ const LaporanService = {
         }
     },
 
-    // Method khusus untuk upload foto
     uploadFoto: async (files) => {
         try {
             const formData = new FormData();
-            
-            // Jika files adalah array
             if (Array.isArray(files)) {
                 files.forEach((file, index) => {
                     formData.append(`foto_${index}`, file);
                 });
             } else {
-                // Jika files adalah single file
                 formData.append('foto', files);
             }
             

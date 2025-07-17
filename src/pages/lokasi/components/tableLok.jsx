@@ -12,17 +12,46 @@ const LokasiTable = () => {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  // Fetch data dari API
+  const formatDateTime = (dateTime) => {
+    if (!dateTime) return 'Tidak diketahui';
+
+    try {
+      let date;
+      if (dateTime && typeof dateTime === 'object' && dateTime._seconds) {
+        date = new Date(dateTime._seconds * 1000 + (dateTime._nanoseconds || 0) / 1000000);
+      } else if (dateTime && typeof dateTime === 'object' && dateTime.seconds) {
+        date = new Date(dateTime.seconds * 1000 + (dateTime.nanoseconds || 0) / 1000000);
+      } else {
+        date = new Date(dateTime);
+      }
+
+      if (isNaN(date.getTime())) {
+        return String(dateTime);
+      }
+
+      return date.toLocaleString('id-ID', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error, dateTime);
+      return String(dateTime);
+    }
+  };
+
   const fetchLokasi = async () => {
     setLoading(true);
     try {
       const response = await LokasiService.getAllLokasi();
-      
       const transformedData = response.map((item) => ({
         key: item.id_lokasi_klaim,
         id_lokasi: item.id_lokasi_klaim,
         nama_lokasi: item.lokasi_klaim,
-        tanggal_dibuat: new Date(item.created_at).toLocaleDateString('id-ID'),
+        tanggal_dibuat: formatDateTime(item.created_at),
         ...item
       }));
 
@@ -34,6 +63,7 @@ const LokasiTable = () => {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     fetchLokasi();
@@ -68,16 +98,16 @@ const LokasiTable = () => {
       align: 'center',
       render: (_, record) => (
         <Space size="small">
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             size="small"
             onClick={() => handleEdit(record)}
           >
             Edit
           </Button>
-          <Button 
-            type="primary" 
-            danger 
+          <Button
+            type="primary"
+            danger
             size="small"
             onClick={() => handleDelete(record)}
           >
@@ -95,12 +125,13 @@ const LokasiTable = () => {
         <div>
           <p><strong>ID Lokasi:</strong> {record.id_lokasi_klaim}</p>
           <p><strong>Nama Lokasi:</strong> {record.lokasi_klaim}</p>
-          <p><strong>Dibuat pada:</strong> {new Date(record.created_at).toLocaleString('id-ID')}</p>
+          <p><strong>Dibuat pada:</strong> {formatDateTime(record.created_at)}</p>
         </div>
       ),
       width: 500,
     });
   };
+
 
   const handleEdit = (record) => {
     setEditData(record);
@@ -114,22 +145,22 @@ const LokasiTable = () => {
 
   const confirmDelete = async () => {
     if (!selectedRecord) return;
-    
+
     setDeleteLoading(true);
-    
+
     try {
       const response = await LokasiService.deleteLokasi(selectedRecord.id_lokasi_klaim);
-      
+
       if (response && response.message) {
         message.success(response.message);
       } else {
         message.success('Lokasi berhasil dihapus');
       }
-      
+
       setDeleteModalVisible(false);
       setSelectedRecord(null);
       await fetchLokasi();
-      
+
     } catch (error) {
       console.error('Delete error:', error);
       message.error('Gagal menghapus lokasi: ' + (error.message || 'Terjadi kesalahan'));
@@ -159,52 +190,45 @@ const LokasiTable = () => {
 
   return (
     <div>
-      {/* Header dengan tombol tambah */}
-      <div style={{ 
-        marginBottom: 16, 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center' 
+      <div style={{
+        marginBottom: 16,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
       }}>
         <h3 style={{ margin: 0 }}>Daftar Lokasi Klaim</h3>
-        <Button 
-          type="primary" 
+        <Button
+          type="primary"
           onClick={handleAdd}
           size="large"
         >
           Tambah Lokasi
         </Button>
       </div>
-
-      {/* Tabel */}
       <Table
         columns={columns}
         dataSource={data}
         loading={loading}
-        pagination={{ 
+        pagination={{
           pageSize: 10,
           showSizeChanger: true,
           showQuickJumper: true,
           showTotal: (total, range) => `${range[0]}-${range[1]} dari ${total} lokasi`
         }}
-        style={{ 
-          width: '100%', 
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', 
+        style={{
+          width: '100%',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
           borderRadius: '8px',
           backgroundColor: 'white'
         }}
         scroll={{ x: 800 }}
       />
-
-      {/* Form Modal untuk Create/Edit */}
       <LokasiForm
         visible={formVisible}
         onCancel={handleFormCancel}
         onSuccess={handleFormSuccess}
         editData={editData}
       />
-
-      {/* Delete Confirmation Modal */}
       <Modal
         title="Konfirmasi Hapus Lokasi"
         open={deleteModalVisible}
@@ -221,10 +245,10 @@ const LokasiTable = () => {
         <div>
           <p>Apakah Anda yakin ingin menghapus lokasi berikut?</p>
           {selectedRecord && (
-            <div style={{ 
-              background: '#f5f5f5', 
-              padding: 16, 
-              borderRadius: 8, 
+            <div style={{
+              background: '#f5f5f5',
+              padding: 16,
+              borderRadius: 8,
               margin: '16px 0',
               border: '1px solid #d9d9d9'
             }}>

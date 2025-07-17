@@ -27,18 +27,9 @@ class ApiService {
         ...options.headers,
       },
     };
-
-    console.log('Making request to:', url);
-    console.log('Request config:', config);
-
     try {
       const response = await fetch(url, config);
-
-      console.log('Response status:', response.status);
-
       const responseText = await response.text();
-      console.log('Response text:', responseText);
-
       if (!response.ok) {
         let errorData;
         try {
@@ -83,7 +74,6 @@ class ApiService {
   }
 
   async createUser(userData) {
-    console.log('Creating user with data:', userData);
     if (userData instanceof FormData) {
       return await this.makeRequest('/users', {
         method: 'POST',
@@ -120,7 +110,6 @@ class ApiService {
 
   async updateUser(userId, userData) {
     if (userData instanceof FormData) {
-      console.log('Sending FormData:');
       for (let [key, value] of userData.entries()) {
         console.log(key, value);
       }

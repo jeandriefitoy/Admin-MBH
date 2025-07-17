@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Table, 
   Button, 
@@ -20,14 +20,18 @@ import {
   EnvironmentOutlined
 } from '@ant-design/icons';
 import LaporanService from '../../../service/laporanService';
-import LokasiService from '../../../service/lokasiService'; // Import lokasi service
+import LokasiService from '../../../service/lokasiService';
+import KategoriService from '../../../service/kategoriService';
+import api from '../../../service/authService';
 
 const { Search } = Input;
 const { Option } = Select;
 
 const LaporanTable = ({ refreshTrigger, onEdit }) => {
   const [data, setData] = useState([]);
-  const [lokasi, setLokasi] = useState([]); // State untuk data lokasi
+  const [lokasi, setLokasi] = useState([]);
+  const [kategori, setKategori] = useState([]);
+  const [userCache, setUserCache] = useState({});
   const [loading, setLoading] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -38,52 +42,127 @@ const LaporanTable = ({ refreshTrigger, onEdit }) => {
     search: ''
   });
 
-  useEffect(() => {
-    fetchLaporan();
-    fetchLokasi(); // Fetch data lokasi
-  }, [refreshTrigger]);
+  const kategoriRef = useRef([]);
+  const lokasiRef = useRef([]);
+  const isInitialLoadRef = useRef(true);
 
-  useEffect(() => {
-    fetchLaporan();
-  }, [filters]);
+  const fetchKategori = async () => {
+    try {
+      const response = await KategoriService.getAllKategori();      
+      if (Array.isArray(response) && response.length > 0) {
+        kategoriRef.current = response;
+        setKategori(response);
+      } else {
+        console.error('Kategori response is not a valid array');
+      }
+    } catch (error) {
+      console.error('Error fetching kategori:', error);
+    }
+  };
 
   const fetchLokasi = async () => {
     try {
       const response = await LokasiService.getAllLokasi();
-      console.log('Lokasi data:', response);
       
-      // Handle different response structures
       let lokasiData = [];
       if (Array.isArray(response)) {
         lokasiData = response;
       } else if (response && Array.isArray(response.data)) {
         lokasiData = response.data;
-      } else if (response && Array.isArray(response.lokasi)) {
-        lokasiData = response.lokasi;
       }
       
-      setLokasi(lokasiData);
+      if (lokasiData.length > 0) {
+        lokasiRef.current = lokasiData;
+        setLokasi(lokasiData);
+      }
     } catch (error) {
       console.error('Error fetching lokasi:', error);
-      // Set empty array if failed
-      setLokasi([]);
     }
+  };
+
+  const getUserData = async (userId) => {
+    if (!userId) {
+      return { name: 'Unknown User', email: 'N/A', role: 'user' };
+    }
+    
+    if (userCache[userId]) {
+      return userCache[userId];
+    }
+
+    try {
+      const userData = await api.getUserById(userId);
+      const userInfo = {
+        name: userData.username || userData.nama || userData.name || 'Unknown User',
+        email: userData.email || 'N/A',
+        role: userData.role || 'user'
+      };
+      
+      setUserCache(prev => ({ ...prev, [userId]: userInfo }));
+      return userInfo;
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      const fallbackInfo = {
+        name: `User ${String(userId).substring(0, 8)}...`,
+        email: 'N/A',
+        role: 'user'
+      };
+      
+      setUserCache(prev => ({ ...prev, [userId]: fallbackInfo }));
+      return fallbackInfo;
+    }
+  };
+
+  const getKategoriName = (kategoriId) => {
+    
+    if (!kategoriId) return 'No Category ID';
+    const kategoriData = kategoriRef.current.length > 0 ? kategoriRef.current : kategori;
+    
+    if (!Array.isArray(kategoriData) || kategoriData.length === 0) {
+      return 'Loading...';
+    }
+    
+    const foundKategori = kategoriData.find(kat => 
+      kat.id_kategori === kategoriId || String(kat.id_kategori) === String(kategoriId)
+    );
+    
+    if (foundKategori) {
+      return foundKategori.nama_kategori || 'Unnamed Category';
+    }
+    return `Unknown (${String(kategoriId)})`;
+  };
+
+  const getLokasiName = (lokasiId) => {
+    if (!lokasiId) return 'Tidak diketahui';
+    const lokasiData = lokasiRef.current.length > 0 ? lokasiRef.current : lokasi;
+    
+    if (!Array.isArray(lokasiData) || lokasiData.length === 0) {
+      return 'Tidak diketahui';
+    }
+    
+    const foundLokasi = lokasiData.find(loc => 
+      loc.id === lokasiId || 
+      loc.id_lokasi === lokasiId ||
+      loc.id_lokasi_klaim === lokasiId ||
+      loc._id === lokasiId
+    );
+    
+    if (foundLokasi) {
+      return foundLokasi.nama_lokasi || foundLokasi.lokasi_klaim || foundLokasi.nama || foundLokasi.lokasi || 'Tidak diketahui';
+    }
+    
+    return String(lokasiId);
   };
 
   const fetchLaporan = async () => {
     setLoading(true);
     try {
       const params = {};
-      
-      // Add filters to params
       if (filters.jenis_laporan) params.jenis_laporan = filters.jenis_laporan;
       if (filters.status) params.status = filters.status;
       if (filters.search) params.search = filters.search;
       
       const response = await LaporanService.getAllLaporan(params);
-      console.log('Laporan response:', response);
       
-      // Handle different response structures
       let laporanData = [];
       if (Array.isArray(response)) {
         laporanData = response;
@@ -92,29 +171,33 @@ const LaporanTable = ({ refreshTrigger, onEdit }) => {
       } else if (response && Array.isArray(response.laporan)) {
         laporanData = response.laporan;
       }
-      
-      // Process and map data with lokasi names
-      const processedData = laporanData.map(item => {
-        const processedItem = {
-          key: item.id_laporan || item.id || Math.random().toString(),
-          id_laporan: item.id_laporan || item.id || 'N/A',
-          pelapor: item.pelapor || item.nama_pelapor || 'Unknown',
-          pelapor_email: item.pelapor_email || item.email_pelapor || 'N/A',
-          pelapor_role: item.pelapor_role || item.role_pelapor || 'user',
-          kategori: item.kategori || item.nama_kategori || 'Unknown',
-          nama_barang: item.nama_barang || item.nama_jenis || 'Unknown',
-          jenis_laporan: item.jenis_laporan || item.jenis || 'unknown',
-          lokasi_kejadian: item.lokasi_kejadian || item.lokasi || 'Unknown',
-          lokasi_klaim: getLokasiName(item.lokasi_klaim || item.id_lokasi_klaim), // Map lokasi ID to name
-          foto: processPhotos(item.foto || item.gambar || item.images),
-          status: item.status || 'proses',
-          waktu: formatDateTime(item.waktu || item.created_at || item.tanggal),
-          deskripsi: item.deskripsi || item.keterangan || 'Tidak ada deskripsi',
-          _original: item
-        };
-        
-        return processedItem;
-      });
+
+      const processedData = await Promise.all(
+        laporanData.map(async (item) => {
+          const userData = await getUserData(item.id_user || item.user_id || item.pelapor_id);
+          const kategoriId = item.id_kategori || item.kategori_id || item.kategori;
+          
+          return {
+            key: item.id_laporan || item.id || Math.random().toString(),
+            id_laporan: item.id_laporan || item.id || 'N/A',
+            pelapor: userData.name,
+            pelapor_email: userData.email,
+            pelapor_role: userData.role,
+            id_user: item.id_user || item.user_id || item.pelapor_id,
+            kategori: getKategoriName(kategoriId),
+            id_kategori: kategoriId,
+            nama_barang: item.nama_barang || item.nama_jenis || 'Unknown',
+            jenis_laporan: item.jenis_laporan || item.jenis || 'unknown',
+            lokasi_kejadian: item.lokasi_kejadian || item.lokasi || 'Unknown',
+            lokasi_klaim: getLokasiName(item.lokasi_klaim || item.id_lokasi_klaim),
+            foto: processPhotos(item.url_foto || item.foto || item.gambar || item.images),
+            status: item.status || 'proses',
+            waktu: formatDateTime(item.waktu_laporan || item.created_at || item.tanggal),
+            deskripsi: item.deskripsi || item.keterangan || 'Tidak ada deskripsi',
+            _original: item
+          };
+        })
+      );
       
       setData(processedData);
       
@@ -127,27 +210,27 @@ const LaporanTable = ({ refreshTrigger, onEdit }) => {
     }
   };
 
-  // Function to get lokasi name by ID
-  const getLokasiName = (lokasiId) => {
-    if (!lokasiId || !Array.isArray(lokasi) || lokasi.length === 0) {
-      return 'Tidak diketahui';
+  useEffect(() => {
+    const loadAllData = async () => {
+      await fetchKategori();
+      await fetchLokasi();
+      setTimeout(() => {
+        fetchLaporan();
+        isInitialLoadRef.current = false;
+      }, 500);
+    };
+    
+    loadAllData();
+  }, [refreshTrigger]);
+  useEffect(() => {
+    if (!isInitialLoadRef.current && kategoriRef.current.length > 0) {
+      const timeoutId = setTimeout(() => {
+        fetchLaporan();
+      }, 300);
+      
+      return () => clearTimeout(timeoutId);
     }
-    
-    // Find lokasi by ID
-    const foundLokasi = lokasi.find(loc => 
-      loc.id === lokasiId || 
-      loc.id_lokasi === lokasiId ||
-      loc._id === lokasiId
-    );
-    
-    if (foundLokasi) {
-      return foundLokasi.nama_lokasi || foundLokasi.nama || foundLokasi.lokasi || 'Tidak diketahui';
-    }
-    
-    // If not found, return the ID itself (might be already a name)
-    return String(lokasiId);
-  };
-
+  }, [filters]);
   const processPhotos = (photos) => {
     if (!photos) return [];
     
@@ -171,7 +254,16 @@ const LaporanTable = ({ refreshTrigger, onEdit }) => {
     if (!dateTime) return 'Tidak diketahui';
     
     try {
-      const date = new Date(dateTime);
+      let date;
+      
+      if (dateTime && typeof dateTime === 'object' && dateTime._seconds) {
+        date = new Date(dateTime._seconds * 1000 + (dateTime._nanoseconds || 0) / 1000000);
+      } else if (dateTime && typeof dateTime === 'object' && dateTime.seconds) {
+        date = new Date(dateTime.seconds * 1000 + (dateTime.nanoseconds || 0) / 1000000);
+      } else {
+        date = new Date(dateTime);
+      }
+      
       if (isNaN(date.getTime())) {
         return String(dateTime);
       }
@@ -181,14 +273,15 @@ const LaporanTable = ({ refreshTrigger, onEdit }) => {
         month: '2-digit',
         day: '2-digit',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        second: '2-digit'
       });
-    } catch {
+    } catch (error) {
+      console.error('Error formatting date:', error, dateTime);
       return String(dateTime);
     }
   };
 
-  // Helper functions for colors
   const getStatusColor = (status) => {
     const colors = {
       'proses': 'orange',
@@ -215,7 +308,6 @@ const LaporanTable = ({ refreshTrigger, onEdit }) => {
     };
     return colors[String(role).toLowerCase()] || 'default';
   };
-
   const columns = [
     {
       title: 'ID Laporan',
@@ -251,6 +343,9 @@ const LaporanTable = ({ refreshTrigger, onEdit }) => {
           <Tag color={getRoleColor(record.pelapor_role)} size="small">
             {String(record.pelapor_role || 'USER').toUpperCase()}
           </Tag>
+          <div style={{ fontSize: '10px', color: '#999', marginTop: 2 }}>
+            ID: {String(record.id_user).substring(0, 8)}...
+          </div>
         </div>
       ),
     },
@@ -758,6 +853,3 @@ const LaporanTable = ({ refreshTrigger, onEdit }) => {
 };
 
 export default LaporanTable;
-
-        
-

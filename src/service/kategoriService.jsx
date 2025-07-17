@@ -4,15 +4,10 @@ const KategoriService = {
     getAllKategori: async (params = {}) => {
         try {
             const queryParams = new URLSearchParams(params).toString();
-            const endpoint = queryParams ? `/kategori?${queryParams}` : '/kategori';
-            
-            console.log('Calling endpoint:', endpoint);
-            
+            const endpoint = queryParams ? `/kategori?${queryParams}` : '/kategori';            
             const response = await api.makeRequest(endpoint, {
                 method: 'GET',
             });
-            
-            console.log('KategoriService response:', response);
             return response;
         } catch (error) {
             console.error('Error fetching kategori:', error);

@@ -4,18 +4,12 @@ const KlaimService = {
     getAllKlaim: async (params = {}) => {
         try {
             const queryParams = new URLSearchParams(params).toString();
-            const endpoint = queryParams ? `/klaim?${queryParams}` : '/klaim';
-            
-            console.log('Calling endpoint:', endpoint);
-            
+            const endpoint = queryParams ? `/klaim?${queryParams}` : '/klaim';            
             const response = await api.makeRequest(endpoint, {
                 method: 'GET',
             });
-            
-            console.log('KlaimService response:', response);
             return response;
         } catch (error) {
-            console.error('Error fetching klaim:', error);
             throw error;
         }
     },
@@ -27,22 +21,18 @@ const KlaimService = {
             });
             return response;
         } catch (error) {
-            console.error('Error fetching klaim by id:', error);
             throw error;
         }
     },
 
     createKlaim: async (data) => {
         try {
-            // Jika data berupa FormData (untuk upload file)
             if (data instanceof FormData) {
                 return await api.makeRequest('/klaim', {
                     method: 'POST',
                     body: data,
                 });
             }
-            
-            // Jika data berupa JSON
             return await api.makeRequest('/klaim', {
                 method: 'POST',
                 body: JSON.stringify(data),
@@ -55,15 +45,12 @@ const KlaimService = {
 
     updateKlaim: async (id, data) => {
         try {
-            // Jika data berupa FormData (untuk upload file)
             if (data instanceof FormData) {
                 return await api.makeRequest(`/klaim/${id}`, {
                     method: 'PUT',
                     body: data,
                 });
             }
-            
-            // Jika data berupa JSON
             return await api.makeRequest(`/klaim/${id}`, {
                 method: 'PUT',
                 body: JSON.stringify(data),

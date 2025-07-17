@@ -12,12 +12,9 @@ export const useLaporan = (filters = {}) => {
       setLoading(true);
       setError(null);
       const data = await laporanService.getAllLaporan(filters);
-      
-      // Ensure data is array and has proper structure
       const formattedData = Array.isArray(data) ? data.map(item => ({
         ...item,
-        key: item.id_laporan, // Add key for table
-        // Ensure required fields exist
+        key: item.id_laporan, 
         id_laporan: item.id_laporan || '',
         id_kategori: item.id_kategori || '',
         id_user: item.id_user || '',

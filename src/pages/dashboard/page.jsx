@@ -47,7 +47,6 @@ export default function DashboardPage() {
             try {
                 data = await DashboardService.getDashboardStats();
             } catch (dashboardError) {
-                console.log('Dashboard endpoint not available, fetching from individual endpoints');
                 data = await DashboardService.getAllStats();
             }
 
@@ -66,7 +65,7 @@ export default function DashboardPage() {
                 usersByRole: {
                     admin: data.users?.filter(u => u.role === 'admin').length || 0,
                     satpam: data.users?.filter(u => u.role === 'satpam').length || 0,
-                    user: data.users?.filter(u => u.role === 'user').length || 0
+                    user: data.users?.filter(u => u.role === 'tamu').length || 0
                 }
             };
 
@@ -361,7 +360,7 @@ export default function DashboardPage() {
                         <div className="flex justify-between items-center p-3 bg-green-50 rounded">
                             <div className="flex items-center">
                                 <UserOutlined className="text-green-500 mr-2" />
-                                <span>User Biasa</span>
+                                <span>Tamu</span>
                             </div>
                             <span className="font-bold text-green-600">{stats.usersByRole.user}</span>
                         </div>

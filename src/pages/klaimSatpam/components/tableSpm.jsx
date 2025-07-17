@@ -15,21 +15,21 @@ const TableSpm = () => {
 
   const parseFirebaseTimestamp = (timestamp) => {
     if (!timestamp) return 'Tidak diketahui';
-    
+
     try {
       if (typeof timestamp === 'string') {
         return new Date(timestamp).toLocaleString('id-ID');
       }
-      
+
       if (timestamp && typeof timestamp === 'object' && timestamp._seconds) {
         const date = new Date(timestamp._seconds * 1000);
         return date.toLocaleString('id-ID');
       }
-      
+
       if (timestamp instanceof Date) {
         return timestamp.toLocaleString('id-ID');
       }
-      
+
       return String(timestamp);
     } catch (error) {
       console.error('Error parsing timestamp:', error, timestamp);
@@ -39,14 +39,14 @@ const TableSpm = () => {
 
   const getUserData = async (userId) => {
     if (!userId) {
-      return { 
-        name: 'Unknown User', 
-        role: 'unknown', 
+      return {
+        name: 'Unknown User',
+        role: 'unknown',
         email: '',
         phone: ''
       };
     }
-    
+
     if (userCache[userId]) {
       return userCache[userId];
     }
@@ -55,16 +55,16 @@ const TableSpm = () => {
       const userData = await api.getUserById(userId);
       const userInfo = {
         name: userData.username || userData.nama || userData.name || 'Unknown User',
-        role: userData.role || 'user',
+        role: userData.role || 'unknown',
         email: userData.email || '',
         phone: userData.no_hp || userData.phone || userData.no_telp || ''
       };
-      
+
       setUserCache(prev => ({
         ...prev,
         [userId]: userInfo
       }));
-      
+
       return userInfo;
     } catch (error) {
       console.error('Error fetching user data for ID:', userId, error);
@@ -74,12 +74,12 @@ const TableSpm = () => {
         email: '',
         phone: ''
       };
-      
+
       setUserCache(prev => ({
         ...prev,
         [userId]: fallbackInfo
       }));
-      
+
       return fallbackInfo;
     }
   };
@@ -87,11 +87,9 @@ const TableSpm = () => {
   const fetchKlaim = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
-      console.log('Fetching klaim data...');
       const response = await KlaimService.getAllKlaim();
-      console.log('Raw klaim response:', response);
       if (!Array.isArray(response)) {
         throw new Error('Response bukan array');
       }
@@ -100,14 +98,14 @@ const TableSpm = () => {
         setData([]);
         return;
       }
-      
+
       const transformedData = await Promise.all(
         response.map(async (item, index) => {
           try {
             const satpamData = await getUserData(item.id_satpam);
             const penerimaData = await getUserData(item.id_penerima);
             const waktuTerima = parseFirebaseTimestamp(item.waktu_terima);
-            
+
             return {
               key: item.id_klaim || `klaim-${index}`,
               id_klaim: String(item.id_klaim || `klaim-${index}`),
@@ -146,9 +144,8 @@ const TableSpm = () => {
         })
       );
 
-      console.log('Transformed data:', transformedData);
       setData(transformedData);
-      
+
     } catch (error) {
       console.error('Error fetching klaim:', error);
       setError(error.message || 'Gagal memuat data klaim');
@@ -178,6 +175,7 @@ const TableSpm = () => {
       case 'admin': return 'red';
       case 'satpam': return 'blue';
       case 'user': return 'green';
+      case 'tamu': return 'orange';
       default: return 'default';
     }
   };
@@ -187,9 +185,11 @@ const TableSpm = () => {
       case 'admin': return '👑';
       case 'satpam': return '🛡️';
       case 'user': return '👤';
+      case 'tamu': return '🚶';
       default: return '❓';
     }
   };
+
 
   const columns = [
     {
@@ -220,10 +220,10 @@ const TableSpm = () => {
       width: '12%',
       render: (_, record) => (
         <div>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            marginBottom: 4 
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            marginBottom: 4
           }}>
             <span style={{ marginRight: 4 }}>
               {getRoleIcon(record.satpam_role)}
@@ -232,8 +232,8 @@ const TableSpm = () => {
               {String(record.nama_satpam || 'Unknown')}
             </span>
           </div>
-          <Tag 
-            color={getRoleColor(record.satpam_role)} 
+          <Tag
+            color={getRoleColor(record.satpam_role)}
             size="small"
             style={{ fontSize: '10px' }}
           >
@@ -248,10 +248,10 @@ const TableSpm = () => {
       width: '12%',
       render: (_, record) => (
         <div>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            marginBottom: 4 
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            marginBottom: 4
           }}>
             <span style={{ marginRight: 4 }}>
               {getRoleIcon(record.penerima_role)}
@@ -260,8 +260,8 @@ const TableSpm = () => {
               {String(record.nama_penerima || 'Unknown')}
             </span>
           </div>
-          <Tag 
-            color={getRoleColor(record.penerima_role)} 
+          <Tag
+            color={getRoleColor(record.penerima_role)}
             size="small"
             style={{ fontSize: '10px' }}
           >
@@ -294,20 +294,20 @@ const TableSpm = () => {
             height={50}
             src={url}
             alt="Foto Klaim"
-            style={{ 
-              objectFit: 'cover', 
+            style={{
+              objectFit: 'cover',
               borderRadius: 4,
               border: '1px solid #d9d9d9'
             }}
             fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
           />
         ) : (
-          <div style={{ 
-            width: 50, 
-            height: 50, 
-            background: '#f5f5f5', 
-            display: 'flex', 
-            alignItems: 'center', 
+          <div style={{
+            width: 50,
+            height: 50,
+            background: '#f5f5f5',
+            display: 'flex',
+            alignItems: 'center',
             justifyContent: 'center',
             borderRadius: 4,
             border: '1px solid #d9d9d9'
@@ -384,42 +384,42 @@ const TableSpm = () => {
         <div style={{ marginTop: 16 }}>
           <div style={{ marginBottom: 12 }}>
             <strong>ID Klaim:</strong>
-            <div style={{ 
-              fontFamily: 'monospace', 
-              background: '#f5f5f5', 
-              padding: '4px 8px', 
+            <div style={{
+              fontFamily: 'monospace',
+              background: '#f5f5f5',
+              padding: '4px 8px',
               borderRadius: 4,
               marginTop: 4
             }}>
               {String(record.id_klaim || 'N/A')}
             </div>
           </div>
-          
+
           <div style={{ marginBottom: 12 }}>
             <strong>ID Laporan Cocok:</strong>
-            <div style={{ 
-              fontFamily: 'monospace', 
-              background: '#f5f5f5', 
-              padding: '4px 8px', 
+            <div style={{
+              fontFamily: 'monospace',
+              background: '#f5f5f5',
+              padding: '4px 8px',
               borderRadius: 4,
               marginTop: 4
             }}>
               {String(record.id_laporan_cocok || 'N/A')}
             </div>
           </div>
-          
+
           <div style={{ marginBottom: 12 }}>
             <strong>Satpam:</strong>
-            <div style={{ 
-              background: '#f5f5f5', 
-              padding: '8px 12px', 
+            <div style={{
+              background: '#f5f5f5',
+              padding: '8px 12px',
               borderRadius: 4,
               marginTop: 4
             }}>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                marginBottom: 4 
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                marginBottom: 4
               }}>
                 <span style={{ marginRight: 8, fontSize: '16px' }}>
                   {getRoleIcon(record.satpam_role)}
@@ -436,19 +436,19 @@ const TableSpm = () => {
               </Tag>
             </div>
           </div>
-          
+
           <div style={{ marginBottom: 12 }}>
             <strong>Penerima:</strong>
-            <div style={{ 
-              background: '#f5f5f5', 
-              padding: '8px 12px', 
+            <div style={{
+              background: '#f5f5f5',
+              padding: '8px 12px',
               borderRadius: 4,
               marginTop: 4
             }}>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                marginBottom: 4 
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                marginBottom: 4
               }}>
                 <span style={{ marginRight: 8, fontSize: '16px' }}>
                   {getRoleIcon(record.penerima_role)}
@@ -468,7 +468,7 @@ const TableSpm = () => {
               </Tag>
             </div>
           </div>
-          
+
           <div style={{ marginBottom: 12 }}>
             <strong>Foto Klaim:</strong>
             <div style={{ marginTop: 8 }}>
@@ -477,16 +477,16 @@ const TableSpm = () => {
                   width={200}
                   src={record.foto_klaim}
                   alt="Foto Klaim"
-                  style={{ 
+                  style={{
                     borderRadius: 8,
                     border: '1px solid #d9d9d9'
                   }}
                   fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
                 />
               ) : (
-                <div style={{ 
-                  padding: 20, 
-                  background: '#fafafa', 
+                <div style={{
+                  padding: 20,
+                  background: '#fafafa',
                   border: '1px dashed #d9d9d9',
                   borderRadius: 8,
                   textAlign: 'center',
@@ -497,7 +497,7 @@ const TableSpm = () => {
               )}
             </div>
           </div>
-          
+
           <div style={{ marginBottom: 12 }}>
             <strong>Waktu Terima:</strong>
             <div style={{ marginTop: 4, fontSize: '14px' }}>
@@ -505,7 +505,7 @@ const TableSpm = () => {
               {String(record.waktu_terima || 'Tidak diketahui')}
             </div>
           </div>
-          
+
           <div style={{ marginBottom: 0 }}>
             <strong>Status:</strong>
             <div style={{ marginTop: 4 }}>
@@ -527,22 +527,22 @@ const TableSpm = () => {
 
   const confirmDelete = async () => {
     if (!selectedRecord) return;
-    
+
     setDeleteLoading(true);
-    
+
     try {
       const response = await KlaimService.deleteKlaim(selectedRecord.id_klaim);
-      
+
       if (response && response.message) {
         message.success(response.message);
       } else {
         message.success('Klaim berhasil dihapus');
       }
-      
+
       setDeleteModalVisible(false);
       setSelectedRecord(null);
       await fetchKlaim();
-      
+
     } catch (error) {
       console.error('Delete error:', error);
       message.error('Gagal menghapus klaim: ' + (error.message || 'Terjadi kesalahan'));
@@ -571,7 +571,7 @@ const TableSpm = () => {
           }
           style={{ marginBottom: 16 }}
         />
-        
+
         <Table
           columns={columns}
           dataSource={[]}
@@ -580,9 +580,9 @@ const TableSpm = () => {
             emptyText: 'Gagal memuat data klaim'
           }}
           pagination={false}
-          style={{ 
-            width: '100%', 
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', 
+          style={{
+            width: '100%',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
             borderRadius: '8px',
             backgroundColor: 'white'
           }}
@@ -593,11 +593,11 @@ const TableSpm = () => {
 
   return (
     <div>
-      <div style={{ 
-        marginBottom: 16, 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center' 
+      <div style={{
+        marginBottom: 16,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
       }}>
         <h3 style={{ margin: 0 }}>Daftar Klaim Satpam</h3>
         <div style={{ fontSize: '14px', color: '#666' }}>
@@ -605,12 +605,12 @@ const TableSpm = () => {
         </div>
       </div>
 
-      <div style={{ 
-        marginBottom: 16, 
+      <div style={{
+        marginBottom: 16,
         padding: 12,
-        background: '#f0f8ff', 
+        background: '#f0f8ff',
         border: '1px solid #d6f7ff',
-        borderRadius: 8 
+        borderRadius: 8
       }}>
         <div style={{ fontSize: '14px', color: '#1890ff', marginBottom: 8 }}>
           <strong>Status Klaim:</strong>
@@ -627,13 +627,15 @@ const TableSpm = () => {
             <span>👑 <Tag color="red" size="small">ADMIN</Tag></span>
             <span>🛡️ <Tag color="blue" size="small">SATPAM</Tag></span>
             <span>👤 <Tag color="green" size="small">USER</Tag></span>
+            <span>🚶 <Tag color="orange" size="small">TAMU</Tag></span>
           </Space>
         </div>
+
       </div>
 
       {loading && (
-        <div style={{ 
-          textAlign: 'center', 
+        <div style={{
+          textAlign: 'center',
           padding: '40px 0',
           background: 'white',
           borderRadius: 8,
@@ -650,7 +652,7 @@ const TableSpm = () => {
         columns={columns}
         dataSource={data}
         loading={loading}
-        pagination={{ 
+        pagination={{
           pageSize: 10,
           showSizeChanger: true,
           showQuickJumper: true,
@@ -659,9 +661,9 @@ const TableSpm = () => {
         locale={{
           emptyText: loading ? 'Memuat data...' : 'Tidak ada data klaim'
         }}
-        style={{ 
-          width: '100%', 
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', 
+        style={{
+          width: '100%',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
           borderRadius: '8px',
           backgroundColor: 'white'
         }}
@@ -684,10 +686,10 @@ const TableSpm = () => {
         <div>
           <p>Apakah Anda yakin ingin menghapus klaim berikut?</p>
           {selectedRecord && (
-            <div style={{ 
-              background: '#f5f5f5', 
-              padding: 16, 
-              borderRadius: 8, 
+            <div style={{
+              background: '#f5f5f5',
+              padding: 16,
+              borderRadius: 8,
               margin: '16px 0',
               border: '1px solid #d9d9d9'
             }}>
@@ -704,7 +706,7 @@ const TableSpm = () => {
                 <strong>Waktu Terima:</strong> {String(selectedRecord.waktu_terima)}
               </p>
               <p style={{ margin: 0 }}>
-                <strong>Status:</strong> 
+                <strong>Status:</strong>
                 <Tag color={getStatusColor(selectedRecord.status)} style={{ marginLeft: 8 }}>
                   {String(selectedRecord.status || 'UNKNOWN').toUpperCase()}
                 </Tag>

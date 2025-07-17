@@ -10,7 +10,74 @@ const PencocokanTable = () => {
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [userCache, setUserCache] = useState({}); 
+  const [userCache, setUserCache] = useState({});
+  const formatDateTime = (dateTime) => {
+    if (!dateTime) return { tanggal: 'Tidak diketahui', waktu: 'Tidak diketahui' };
+
+    try {
+      let date;
+      if (dateTime && typeof dateTime === 'object' && dateTime._seconds) {
+        date = new Date(dateTime._seconds * 1000 + (dateTime._nanoseconds || 0) / 1000000);
+      } else if (dateTime && typeof dateTime === 'object' && dateTime.seconds) {
+        date = new Date(dateTime.seconds * 1000 + (dateTime.nanoseconds || 0) / 1000000);
+      } else {
+        date = new Date(dateTime);
+      }
+
+      if (isNaN(date.getTime())) {
+        return { tanggal: String(dateTime), waktu: String(dateTime) };
+      }
+
+      const tanggal = date.toLocaleDateString('id-ID', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+
+      const waktu = date.toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+
+      return { tanggal, waktu };
+    } catch (error) {
+      console.error('Error formatting date:', error, dateTime);
+      return { tanggal: String(dateTime), waktu: String(dateTime) };
+    }
+  };
+
+  const formatFullDateTime = (dateTime) => {
+    if (!dateTime) return 'Tidak diketahui';
+
+    try {
+      let date;
+      if (dateTime && typeof dateTime === 'object' && dateTime._seconds) {
+        date = new Date(dateTime._seconds * 1000 + (dateTime._nanoseconds || 0) / 1000000);
+      } else if (dateTime && typeof dateTime === 'object' && dateTime.seconds) {
+        date = new Date(dateTime.seconds * 1000 + (dateTime.nanoseconds || 0) / 1000000);
+      } else {
+        date = new Date(dateTime);
+      }
+
+      if (isNaN(date.getTime())) {
+        return String(dateTime);
+      }
+
+      return date.toLocaleString('id-ID', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error, dateTime);
+      return String(dateTime);
+    }
+  };
+
 
   const getUserData = async (userId) => {
     if (userCache[userId]) {
@@ -24,12 +91,12 @@ const PencocokanTable = () => {
         role: userData.role || 'user',
         email: userData.email || ''
       };
-      
+
       setUserCache(prev => ({
         ...prev,
         [userId]: userInfo
       }));
-      
+
       return userInfo;
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -38,12 +105,12 @@ const PencocokanTable = () => {
         role: 'unknown',
         email: ''
       };
-      
+
       setUserCache(prev => ({
         ...prev,
         [userId]: fallbackInfo
       }));
-      
+
       return fallbackInfo;
     }
   };
@@ -52,11 +119,12 @@ const PencocokanTable = () => {
     setLoading(true);
     try {
       const response = await PencocokanService.getAllCocok();
-      
       const transformedData = await Promise.all(
         response.map(async (item, index) => {
           const userData = await getUserData(item.created_by);
-          
+
+          const dateTimeFormatted = formatDateTime(item.created_at);
+
           return {
             key: item.id_laporan_cocok,
             no: index + 1,
@@ -64,8 +132,8 @@ const PencocokanTable = () => {
             laporan_hilang: item.id_laporan_hilang,
             laporan_temuan: item.id_laporan_temuan,
             skor_cocok: item.skor_cocok,
-            tanggal: new Date(item.created_at).toLocaleDateString('id-ID'),
-            waktu: new Date(item.created_at).toLocaleTimeString('id-ID'),
+            tanggal: dateTimeFormatted.tanggal,
+            waktu: dateTimeFormatted.waktu,
             dibuat_oleh: item.created_by,
             dibuat_oleh_nama: userData.name,
             dibuat_oleh_role: userData.role,
@@ -83,6 +151,7 @@ const PencocokanTable = () => {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     fetchPencocokan();
@@ -179,10 +248,10 @@ const PencocokanTable = () => {
       align: 'start',
       render: (_, record) => (
         <div>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            marginBottom: 4 
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            marginBottom: 4
           }}>
             <span style={{ marginRight: 4 }}>
               {getRoleIcon(record.dibuat_oleh_role)}
@@ -191,8 +260,8 @@ const PencocokanTable = () => {
               {record.dibuat_oleh_nama}
             </span>
           </div>
-          <Tag 
-            color={getRoleColor(record.dibuat_oleh_role)} 
+          <Tag
+            color={getRoleColor(record.dibuat_oleh_role)}
             size="small"
             style={{ fontSize: '11px' }}
           >
@@ -214,9 +283,9 @@ const PencocokanTable = () => {
       align: 'center',
       render: (_, record) => (
         <Space size="small">
-          <Button 
-            type="primary" 
-            danger 
+          <Button
+            type="primary"
+            danger
             size="small"
             icon={<DeleteOutlined />}
             onClick={() => handleDelete(record)}
@@ -235,43 +304,43 @@ const PencocokanTable = () => {
         <div style={{ marginTop: 16 }}>
           <div style={{ marginBottom: 12 }}>
             <strong>ID Pencocokan:</strong>
-            <div style={{ 
-              fontFamily: 'monospace', 
-              background: '#f5f5f5', 
-              padding: '4px 8px', 
+            <div style={{
+              fontFamily: 'monospace',
+              background: '#f5f5f5',
+              padding: '4px 8px',
               borderRadius: 4,
               marginTop: 4
             }}>
               {record.id_laporan_cocok}
             </div>
           </div>
-          
+
           <div style={{ marginBottom: 12 }}>
             <strong>Laporan Hilang:</strong>
-            <div style={{ 
-              fontFamily: 'monospace', 
-              background: '#f5f5f5', 
-              padding: '4px 8px', 
+            <div style={{
+              fontFamily: 'monospace',
+              background: '#f5f5f5',
+              padding: '4px 8px',
               borderRadius: 4,
               marginTop: 4
             }}>
               {record.laporan_hilang}
             </div>
           </div>
-          
+
           <div style={{ marginBottom: 12 }}>
             <strong>Laporan Temuan:</strong>
-            <div style={{ 
-              fontFamily: 'monospace', 
-              background: '#f5f5f5', 
-              padding: '4px 8px', 
+            <div style={{
+              fontFamily: 'monospace',
+              background: '#f5f5f5',
+              padding: '4px 8px',
               borderRadius: 4,
               marginTop: 4
             }}>
               {record.laporan_temuan}
             </div>
           </div>
-          
+
           <div style={{ marginBottom: 12 }}>
             <strong>Skor Kecocokan:</strong>
             <div style={{ marginTop: 4 }}>
@@ -280,26 +349,26 @@ const PencocokanTable = () => {
               </Tag>
             </div>
           </div>
-          
+
           <div style={{ marginBottom: 12 }}>
             <strong>Dibuat pada:</strong>
             <div style={{ marginTop: 4 }}>
-              {new Date(record.created_at).toLocaleString('id-ID')}
+              {formatFullDateTime(record.created_at)}
             </div>
           </div>
-          
+
           <div style={{ marginBottom: 0 }}>
             <strong>Dibuat oleh:</strong>
-            <div style={{ 
-              background: '#f5f5f5', 
-              padding: '8px 12px', 
+            <div style={{
+              background: '#f5f5f5',
+              padding: '8px 12px',
               borderRadius: 4,
               marginTop: 4
             }}>
-              <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                marginBottom: 4 
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                marginBottom: 4
               }}>
                 <span style={{ marginRight: 8, fontSize: '16px' }}>
                   {getRoleIcon(record.dibuat_oleh_role)}
@@ -316,9 +385,9 @@ const PencocokanTable = () => {
                   {record.dibuat_oleh_role?.toUpperCase() || 'UNKNOWN'}
                 </Tag>
               </div>
-              <div style={{ 
-                fontSize: '11px', 
-                color: '#999', 
+              <div style={{
+                fontSize: '11px',
+                color: '#999',
                 fontFamily: 'monospace',
                 marginTop: 4
               }}>
@@ -332,6 +401,7 @@ const PencocokanTable = () => {
     });
   };
 
+
   const handleDelete = (record) => {
     setSelectedRecord(record);
     setDeleteModalVisible(true);
@@ -339,22 +409,22 @@ const PencocokanTable = () => {
 
   const confirmDelete = async () => {
     if (!selectedRecord) return;
-    
+
     setDeleteLoading(true);
-    
+
     try {
       const response = await PencocokanService.deleteCocok(selectedRecord.id_laporan_cocok);
-      
+
       if (response && response.message) {
         message.success(response.message);
       } else {
         message.success('Data pencocokan berhasil dihapus');
       }
-      
+
       setDeleteModalVisible(false);
       setSelectedRecord(null);
       await fetchPencocokan();
-      
+
     } catch (error) {
       console.error('Delete error:', error);
       message.error('Gagal menghapus data pencocokan: ' + (error.message || 'Terjadi kesalahan'));
@@ -371,11 +441,11 @@ const PencocokanTable = () => {
   return (
     <div>
       {/* Header */}
-      <div style={{ 
-        marginBottom: 16, 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center' 
+      <div style={{
+        marginBottom: 16,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
       }}>
         <h3 style={{ margin: 0 }}>Daftar Pencocokan Laporan</h3>
         <div style={{ fontSize: '14px', color: '#666' }}>
@@ -384,12 +454,12 @@ const PencocokanTable = () => {
       </div>
 
       {/* Info Card */}
-      <div style={{ 
-        marginBottom: 16, 
-        padding: 12, 
-        background: '#f0f8ff', 
+      <div style={{
+        marginBottom: 16,
+        padding: 12,
+        background: '#f0f8ff',
         border: '1px solid #d6f7ff',
-        borderRadius: 8 
+        borderRadius: 8
       }}>
         <div style={{ fontSize: '14px', color: '#1890ff', marginBottom: 8 }}>
           <strong>Keterangan Skor:</strong>
@@ -411,20 +481,20 @@ const PencocokanTable = () => {
       </div>
 
       {/* Tabel */}
-            {/* Tabel */}
+      {/* Tabel */}
       <Table
         columns={columns}
         dataSource={data}
         loading={loading}
-        pagination={{ 
+        pagination={{
           pageSize: 10,
           showSizeChanger: true,
           showQuickJumper: true,
           showTotal: (total, range) => `${range[0]}-${range[1]} dari ${total} pencocokan`
         }}
-        style={{ 
-          width: '100%', 
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', 
+        style={{
+          width: '100%',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
           borderRadius: '8px',
           backgroundColor: 'white'
         }}
@@ -448,10 +518,10 @@ const PencocokanTable = () => {
         <div>
           <p>Apakah Anda yakin ingin menghapus data pencocokan berikut?</p>
           {selectedRecord && (
-            <div style={{ 
-              background: '#f5f5f5', 
-              padding: 16, 
-              borderRadius: 8, 
+            <div style={{
+              background: '#f5f5f5',
+              padding: 16,
+              borderRadius: 8,
               margin: '16px 0',
               border: '1px solid #d9d9d9'
             }}>
@@ -465,19 +535,19 @@ const PencocokanTable = () => {
                 <strong>Laporan Temuan:</strong> {selectedRecord.laporan_temuan}
               </p>
               <p style={{ margin: '0 0 8px 0' }}>
-                <strong>Skor Cocok:</strong> 
+                <strong>Skor Cocok:</strong>
                 <Tag color={getSkorColor(selectedRecord.skor_cocok)} style={{ marginLeft: 8 }}>
                   {selectedRecord.skor_cocok}%
                 </Tag>
               </p>
               <p style={{ margin: 0 }}>
-                <strong>Dibuat oleh:</strong> 
+                <strong>Dibuat oleh:</strong>
                 <span style={{ marginLeft: 8 }}>
                   {getRoleIcon(selectedRecord.dibuat_oleh_role)} {selectedRecord.dibuat_oleh_nama}
                 </span>
-                <Tag 
-                  color={getRoleColor(selectedRecord.dibuat_oleh_role)} 
-                  size="small" 
+                <Tag
+                  color={getRoleColor(selectedRecord.dibuat_oleh_role)}
+                  size="small"
                   style={{ marginLeft: 8 }}
                 >
                   {selectedRecord.dibuat_oleh_role?.toUpperCase() || 'UNKNOWN'}
