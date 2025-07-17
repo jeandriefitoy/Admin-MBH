@@ -4,8 +4,8 @@ import authService from '../../service/authService';
 
 export default function LoginPage({ onLogin }) {
     const [formData, setFormData] = useState({
-        email: ' ',
-        password: ' '
+        email: '',
+        password: ''
     });
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
