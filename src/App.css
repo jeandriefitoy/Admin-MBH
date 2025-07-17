@@ -8,5 +8,9 @@ body {
 .content {
   overflow-y: auto;
   height: calc(100vh - 4rem);
-  
+  margin-bottom: 30px;
 }
+
+/* .first {
+  margin-bottom: 30px;
+} */

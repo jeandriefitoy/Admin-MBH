@@ -1,5 +1,5 @@
 import { LayoutDashboard, NotepadText, UserRound, FolderOpen, MapPin, Settings, LogOut } from 'lucide-react';
-import authService from '../service/api'; 
+import authService from '../service/authService'; 
 
 export default function SideBar({ activeSection, onSectionChange, onLogout }) {
     const menuItems = [
@@ -38,8 +38,8 @@ export default function SideBar({ activeSection, onSectionChange, onLogout }) {
                             <div
                                 key={item.id}
                                 className={`flex items-center justify-start gap-2 px-5 py-3 w-full cursor-pointer rounded-xl transition-colors ${isActive
-                                        ? 'bg-gray-200 text-black'
-                                        : 'hover:bg-gray-200 hover:text-black'
+                                        ? 'bg-blue-500 text-white'
+                                        : 'hover:bg-blue-400 hover:text-white'
                                     }`}
                                 onClick={() => onSectionChange(item.id)}
                             >
@@ -51,7 +51,7 @@ export default function SideBar({ activeSection, onSectionChange, onLogout }) {
                 </div>
 
                 <div 
-                className='flex flex-row items-center justify-start gap-2 px-5 py-3 mb-7 w-full cursor-pointer rounded-xl transition-colors hover:bg-gray-200 hover:text-black'
+                className='flex flex-row items-center justify-start gap-2 px-5 py-3 mb-7 w-full cursor-pointer rounded-xl transition-colors hover:bg-blue-400 hover:text-white'
                 onClick={handleLogout}
                 >
                     <LogOut size={20} />

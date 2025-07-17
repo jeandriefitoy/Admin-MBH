@@ -9,7 +9,8 @@ import LokasiPage from './pages/lokasi/page'
 import PencocokanPage from './pages/pencocokan/page'
 import KlaimSatpamPage from './pages/klaimSatpam/page'
 import LoginPage from './auth/signIn/page'
-import authService from './service/api'
+import KategoriPage from './pages/kategori/page'
+import authService from './service/authService'
 
 function App() {
   const [activeSection, setActiveSection] = useState('dashboard')
@@ -64,7 +65,7 @@ function App() {
       case 'laporan':
         return <LaporanPage />
       case 'kategori':
-        return <div className="p-4"><h1 className="text-2xl font-bold">Kategori Page</h1></div>
+        return <KategoriPage />
       case 'lokasi':
         return <LokasiPage />
       case 'pencocokan':
@@ -96,8 +97,8 @@ function App() {
   }
 
   return (
-    <div className='flex w-full h-full no-scroll'>
-      <div className='w-66 flex-shrink-0 no-scroll'>
+    <div className='flex w-full h-full '>
+      <div className='w-66 flex-shrink-0 '>
         <SideBar 
           activeSection={activeSection} 
           onSectionChange={setActiveSection}
@@ -106,13 +107,13 @@ function App() {
         />
       </div>
       
-      <div className='flex flex-col flex-1 min-w-0 no-scroll'>
-        <div className='flex-shrink-0 no-scroll'>
+      <div className='flex flex-col flex-1 min-w-0 '>
+        <div className='flex-shrink-0 '>
           <TopBar user={user} onLogout={handleLogout} />
         </div>
         
-        <div className='flex-1 content-scrollable scroll-y-only'>
-          <div className='px-4 py-4'>
+        <div className=' flex-1'>
+          <div className='px-4 py-4 content'>
             {renderContent()}
           </div>
         </div>
