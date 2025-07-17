@@ -49,7 +49,6 @@ export default function DashboardPage() {
             } catch (dashboardError) {
                 data = await DashboardService.getAllStats();
             }
-
             const processedStats = {
                 totalUsers: data.users?.length || 0,
                 totalLaporan: data.laporan?.length || 0,
@@ -409,7 +408,7 @@ export default function DashboardPage() {
             </div>
 
             {/* System Health Indicator */}
-            <div className="mt-6 mb-4">
+            <div className="mt-6 mb-4 pb-6">
                 <Card className="shadow-lg">
                     <div className="flex items-center justify-between">
                         <div>

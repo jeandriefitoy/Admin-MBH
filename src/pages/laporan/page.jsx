@@ -34,7 +34,7 @@ export default function LaporanPage() {
     };
 
     return (
-        <div className="w-full flex h-full p-4 flex-col">
+        <div className="w-full flex h-full p-4 flex-col page-content">
             <div className="flex flex-row justify-between items-center mb-4">
                 <h1 className="text-2xl font-bold">Manajemen Laporan</h1>
                 <Button 
@@ -52,7 +52,7 @@ export default function LaporanPage() {
                 </Button>
             </div>
 
-            <div className="flex w-full h-full mt-4">
+            <div className="flex w-full h-full mt-4 mb-8">
                 <Table 
                     refreshTrigger={refreshTrigger}
                     onEdit={handleEditLaporan}

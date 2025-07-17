@@ -784,27 +784,29 @@ const LaporanTable = ({ refreshTrigger, onEdit }) => {
       )}
 
       {/* Table */}
-      <Table
-        columns={columns}
-        dataSource={data}
-        loading={loading}
-        pagination={{ 
-          pageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total, range) => `${range[0]}-${range[1]} dari ${total} laporan`
-        }}
-        locale={{
-          emptyText: loading ? 'Memuat data...' : 'Tidak ada data laporan'
-        }}
-        style={{ 
-          width: '100%', 
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', 
-          borderRadius: '8px',
-          backgroundColor: 'white'
-        }}
-        scroll={{ x: 1600 }}
-      />
+      <div style={{ marginBottom: '3rem' }}> 
+        <Table
+          columns={columns}
+          dataSource={data}
+          loading={loading}
+          pagination={{ 
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total, range) => `${range[0]}-${range[1]} dari ${total} laporan`
+          }}
+          locale={{
+            emptyText: loading ? 'Memuat data...' : 'Tidak ada data laporan'
+          }}
+          style={{ 
+            width: '100%', 
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', 
+            borderRadius: '8px',
+            backgroundColor: 'white'
+          }}
+          scroll={{ x: 1600 }}
+        />
+      </div>
 
       {/* Delete Confirmation Modal */}
       <Modal

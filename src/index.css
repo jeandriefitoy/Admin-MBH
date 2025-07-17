@@ -12,3 +12,25 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+.main-content {
+  min-height: calc(100vh - 64px);
+  padding-bottom: 2rem;
+  overflow-y: auto;
+}
+
+.page-container {
+  padding: 1rem;
+  margin-bottom: 2rem;
+  min-height: calc(100vh - 120px);
+}
+
+.content-wrapper {
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+  padding-bottom: 2rem;
+}
+
+.page-content {
+  padding-bottom: 3rem !important;
+}
